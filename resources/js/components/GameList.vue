@@ -1,19 +1,21 @@
 <template>
     <div>
         <div v-for="(game, index) in games" :key="index">
-            <h1>{{game.title}}</h1>
-            <p>{{game.description}}</p>
-            <img :src="game.image" />
+            <Game :game="game"/>
         </div>
     </div>
 </template>
 
 <script>
+    import Game from './Game'
     export default {
         data: function() {
             return {
                 games: []
             }
+        },
+        components: {
+          Game,
         },
         methods: {
             getGames() {

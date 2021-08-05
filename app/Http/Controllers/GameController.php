@@ -7,6 +7,20 @@ use Illuminate\Http\Request;
 
 class GameController extends Controller
 {
+    public static function saveImage($image, $path, $option){
+        try {
+            if($image != null) {
+                $image_path = $image->store($path, $option);
+                return $image_path;
+            } else {
+                return null;
+            }
+        } catch (\Exception $e) {
+            echo 'Image Helper saveImage ' .$e->getMessage();
+        }
+    }
+
+
     public function index()
     {
         return Game::all();
@@ -17,7 +31,9 @@ class GameController extends Controller
         $game = new Game;
         $game->title = $request->input('title');
         $game->description = $request->input('description');
-        $game->image = $request->input('image');
+        $filename = time().'.'.$request->image->getClientOriginalExtension();
+        $request->image->move(public_path('images'), $filename);
+        $game->image = $filename;
         $game->save();
         return $game;
     }
