@@ -7,19 +7,6 @@ use Illuminate\Http\Request;
 
 class GameController extends Controller
 {
-    public static function saveImage($image, $path, $option){
-        try {
-            if($image != null) {
-                $image_path = $image->store($path, $option);
-                return $image_path;
-            } else {
-                return null;
-            }
-        } catch (\Exception $e) {
-            echo 'Image Helper saveImage ' .$e->getMessage();
-        }
-    }
-
 
     public function index()
     {
@@ -29,13 +16,12 @@ class GameController extends Controller
     public function store(Request $request)
     {
         $game = new Game;
-        $game->title = $request->input('title');
-        $game->description = $request->input('description');
-        $filename = time().'.'.$request->image->getClientOriginalExtension();
-        $request->image->move(public_path('images'), $filename);
-        $game->image = $filename;
+        $game->title = $request->title;
+        $game->description = $request->description;
+        $fileName = $request->file('image')->store('/public');
+        $game->image = "storage/" . explode("/", $fileName)[1];
         $game->save();
-        return $game;
+        return ['message' => 'Post Created'];
     }
 
     public function show($id)

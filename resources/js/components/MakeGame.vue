@@ -1,53 +1,69 @@
 <template>
-    <div>
-        <input type="text" v-model="title" />
-        <input type="text" v-model="description" />
-        <div class="col-md-3" v-if="image">
-            <img :src="image" class="img-responsive" height="70" width="90">
+    <form @submit.prevent="addGame" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title">Game Title</label>
+            <input type="text" name="title" class="form-control" id="title" placeholder="Enter Game Title" v-model="title">
         </div>
-        <input type="file" name="image" v-on:change="imageChanged" />
-        <button type="submit" @click="addGame">Add Game</button>
-    </div>
+
+        <div class="form-group">
+            <label for="description">Game Description</label>
+            <textarea name="description" class="form-control" v-model="description"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="image">Image</label>
+            <input type="file" name="picture" class="form-control-file" id="image" @change="onFileChange">
+        </div>
+        <img v-bind:src="imagePreview" width="100" height="100" v-show="showPreview"/>
+        <div class="form-group">
+            <input type="submit" class="btn btn-success" />
+        </div>
+    </form>
 </template>
 
 <script>
+    import axios from 'axios';
     export default {
         data: function() {
             return {
                 title: "",
                 description: "",
-                image: "",
+                image: null,
+                imagePreview: null,
+                showPreview: false,
             }
         },
         methods: {
-            imageChanged(e) {
-                let files = e.target.files || e.dataTransfer.files;
-                if (!files.length)
-                    return;
-                this.createImage(files[0]);
-            },
-            createImage(file) {
-                let reader = new FileReader();
-                let vm = this;
-                reader.onload = (e) => {
-                    vm.image = e.target.result;
-                };
-                reader.readAsDataURL(file);
+            onFileChange(event){
+                this.image = event.target.files[0];
+                let reader  = new FileReader();
+                reader.addEventListener("load", function () {
+                    this.showPreview = true;
+                    this.imagePreview = reader.result;
+                }.bind(this), false);
+                if( this.image ){
+                    if ( /\.(jpe?g|png|gif)$/i.test( this.image.name ) ) {
+                        reader.readAsDataURL( this.image );
+                    }
+                }
             },
             addGame(){
+                let formData = new FormData();
                 if (this.title === "" || this.description === "" || this.image === "") {
                     return
                 }
-
-                axios.post('api/games/', {
-                    title: this.title,
-                    description: this.description,
-                    image: this.image
-                })
+                formData.append("image", this.image);
+                formData.append("title", this.title);
+                formData.append("description", this.description);
+                axios.post('api/games/', formData)
                 .then(response => {
-                    if (response.status === 201) {
+                    console.log(response.status);
+                    if (response.status === 200) {
                         this.title = "";
                         this.description = "";
+                        this.imagePreview = null;
+                        this.showPreview = false;
+                        this.$emit("reloadList");
                     }
                 })
                 .catch(error => {

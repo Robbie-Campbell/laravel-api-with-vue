@@ -8,18 +8,21 @@
 </template>
 
 <script>
+    import axios from 'axios';
     export default {
         props: ['game'],
         methods: {
             deleteGame() {
                 axios.delete("/api/games/" + this.game.id)
                 .then(response => {
-                    console.log(response);
+                    if (response.status === 200) {
+                        this.$emit("reloadList");
+                    }
                 })
                 .catch(error => {
                     console.log(error);
                 })
             }
-        }
+        },
     }
 </script>
