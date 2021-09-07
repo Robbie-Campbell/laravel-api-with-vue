@@ -15,11 +15,14 @@ class GameController extends Controller
 
     public function store(Request $request)
     {
-        $game = new Game;
-        $game->title = $request->title;
-        $game->description = $request->description;
-        $fileName = $request->file('image')->store('/public');
-        $game->image = "storage/" . explode("/", $fileName)[1];
+        $game = Game::create($this->validateRequest());
+        if ($request->image) {
+            $fileName = $request->file('image')->store('/public');
+            $game->image = "storage/" . explode("/", $fileName)[1];
+        }
+        else {
+            $game->image = null;
+        }
         $game->save();
         return ['message' => 'Post Created'];
     }
@@ -46,5 +49,12 @@ class GameController extends Controller
         $game = Game::find($id);
         $game->delete();
         return $game;
+    }
+
+    private function validateRequest() : array{
+        return request()->validate([
+            'title' => 'required',
+            'description' => 'required'
+        ]);
     }
 }
